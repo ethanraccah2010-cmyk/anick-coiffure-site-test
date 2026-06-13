@@ -1,0 +1,13 @@
+# Dépendances installées (Vercel les réinstalle au déploiement)
+node_modules/
+
+# Secrets — ne JAMAIS committer
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Système
+.DS_Store

@@ -1,0 +1,13 @@
+{
+  "name": "anick-coiffure",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site vitrine Anick Coiffure (Montgeron) — réservation connectée à Google Agenda via fonctions Vercel.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "googleapis": "^173.0.0"
+  }
+}

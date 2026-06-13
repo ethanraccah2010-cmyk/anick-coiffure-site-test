@@ -126,29 +126,30 @@
         <!-- ====== COLONNE FORMULAIRE ====== -->
         <div class="reveal" data-delay="1" id="rdv">
           <div class="form-card">
-            <h3 style="margin-bottom:8px;">Demande de rendez-vous</h3>
+            <h3 style="margin-bottom:8px;">Réserver en ligne</h3>
             <p style="font-size:0.92rem;margin-bottom:24px;">
-              Remplissez ce formulaire : Anick vous recontacte pour confirmer le
-              créneau. Les champs marqués <span style="color:var(--c-gold)">*</span> sont obligatoires.
+              Choisissez votre prestation et une date : les créneaux libres
+              s'affichent automatiquement. Votre rendez-vous est confirmé
+              immédiatement. Les champs marqués
+              <span style="color:var(--c-gold)">*</span> sont obligatoires.
             </p>
 
-            <!-- Message de confirmation (affiché par script.js) -->
+            <!-- Message de confirmation / erreur (affiché par script.js) -->
             <div class="form-feedback" data-form-feedback aria-live="polite">
               <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-              <span>Merci&nbsp;! Votre demande a bien été enregistrée. Le salon vous
-                recontacte très vite pour confirmer votre rendez-vous.</span>
+              <span>Votre rendez-vous est confirmé&nbsp;! Vous le retrouverez dans
+                l'agenda du salon. À très vite chez Anick Coiffure.</span>
             </div>
 
             <!--
-              ★★★ FORMULAIRE — ENVOI RÉEL VIA FORMSPREE ★★★
-              Les demandes sont envoyées à votre boîte mail via Formspree.
-              Pour changer de destinataire, modifiez l'URL "action" ci-dessous
-              (votre endpoint Formspree). L'envoi est géré en AJAX dans script.js
-              (la page ne se recharge pas, un message de confirmation s'affiche).
+              ★★★ FORMULAIRE — RÉSERVATION CONNECTÉE À GOOGLE AGENDA ★★★
+              L'envoi est géré en AJAX dans script.js : il interroge
+              /api/disponibilites pour afficher les créneaux libres, puis
+              /api/reserver pour créer le rendez-vous dans l'agenda du salon.
+              La page ne se recharge pas ; un message de confirmation s'affiche.
             -->
-            <form data-rdv-form action="https://formspree.io/f/mjgdrrkj" method="POST" novalidate>
-              <!-- Sujet de l'email reçu + anti-spam (honeypot, ne pas remplir) -->
-              <input type="hidden" name="_subject" value="Nouvelle demande de RDV — Anick Coiffure" />
+            <form data-rdv-form novalidate>
+              <!-- Anti-spam (honeypot : laissé vide par un humain, rempli par un bot) -->
               <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
               <div class="form-grid">
                 <div class="field">
@@ -174,31 +175,51 @@
                 </div>
                 <div class="field span-2">
                   <label for="prestation">Prestation souhaitée <span class="req">*</span></label>
+                  <!-- Les value="" sont les clés stables de lib/config.js -->
                   <select id="prestation" name="prestation" required>
                     <option value="" disabled selected>Choisissez une prestation…</option>
-                    <option>Soins &amp; Traitements</option>
-                    <option>Coupe &amp; Coiffage</option>
-                    <option>Tresses &amp; Extensions</option>
-                    <option>Couleur &amp; Mèches</option>
-                    <option>Coiffure événementielle</option>
-                    <option>Conseil / autre</option>
+                    <optgroup label="Soins &amp; Traitements">
+                      <option value="diagnostic">Diagnostic &amp; conseil — Offert</option>
+                      <option value="soin_hydratation">Soin hydratation profonde — dès 25 €</option>
+                      <option value="soin_proteine">Soin protéiné / reconstruction — dès 35 €</option>
+                      <option value="rituel_cuir">Rituel cuir chevelu &amp; massage — dès 30 €</option>
+                    </optgroup>
+                    <optgroup label="Coupe &amp; Coiffage">
+                      <option value="coupe_femme">Coupe femme + coiffage — dès 35 €</option>
+                      <option value="coupe_boucles">Coupe bouclés / afro (à sec) — dès 45 €</option>
+                      <option value="brushing">Brushing — dès 30 €</option>
+                      <option value="wash_go">Wash &amp; Go / définition boucles — dès 40 €</option>
+                      <option value="evenementiel">Coiffure événementielle — sur devis</option>
+                    </optgroup>
+                    <optgroup label="Tresses &amp; Extensions">
+                      <option value="box_braids">Box braids / tresses collées — dès 70 €</option>
+                      <option value="vanilles">Vanilles &amp; twists — dès 65 €</option>
+                      <option value="tissage">Tissage / pose d'extensions — dès 90 €</option>
+                      <option value="nattes_enfant">Nattes &amp; coiffures enfant — dès 30 €</option>
+                    </optgroup>
+                    <optgroup label="Couleur &amp; Mèches">
+                      <option value="color_racines">Coloration racines — dès 40 €</option>
+                      <option value="color_complete">Coloration complète — dès 55 €</option>
+                      <option value="balayage">Balayage / mèches — dès 70 €</option>
+                      <option value="patine">Patine / gloss — dès 30 €</option>
+                    </optgroup>
                   </select>
                   <span class="error-msg">Merci de choisir une prestation.</span>
                 </div>
-                <div class="field">
+                <div class="field span-2">
                   <label for="date">Date souhaitée <span class="req">*</span></label>
                   <input type="date" id="date" name="date" required />
                   <span class="error-msg">Merci d'indiquer une date.</span>
                 </div>
-                <div class="field">
-                  <label for="creneau">Créneau <span class="req">*</span></label>
-                  <select id="creneau" name="creneau" required>
-                    <option value="" disabled selected>Choisissez…</option>
-                    <option>Matin (9h – 12h)</option>
-                    <option>Midi (12h – 14h)</option>
-                    <option>Après-midi (14h – 17h)</option>
-                    <option>Fin de journée (17h – 19h)</option>
-                  </select>
+                <!-- Créneaux dynamiques : remplis par script.js selon la prestation + la date -->
+                <div class="field span-2" data-creneau-field>
+                  <label>Créneau disponible <span class="req">*</span></label>
+                  <div class="slots" data-slots aria-live="polite">
+                    <p class="slots__hint" data-slots-hint>
+                      Choisissez d'abord une prestation et une date.
+                    </p>
+                  </div>
+                  <input type="hidden" name="heure" data-creneau-value />
                   <span class="error-msg">Merci de choisir un créneau.</span>
                 </div>
                 <div class="field span-2">
@@ -208,7 +229,7 @@
               </div>
 
               <button type="submit" class="btn btn--gold" style="width:100%;margin-top:22px;">
-                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer ma demande
+                <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Réserver mon rendez-vous
               </button>
               <p style="font-size:0.8rem;margin-top:14px;text-align:center;">
                 Vous préférez appeler&nbsp;?

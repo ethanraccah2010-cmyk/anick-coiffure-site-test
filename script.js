@@ -203,13 +203,35 @@
   }
 
   /* -----------------------------------------------------------------------
-     7. VALIDATION FORMULAIRE DE RDV + CONFIRMATION SIMULÉE
+     7. RÉSERVATION EN LIGNE (créneaux dynamiques + Google Agenda)
+     -----------------------------------------------------------------------
+     - Date + prestation choisies  -> GET /api/disponibilites (créneaux libres)
+     - Créneau cliqué + champs OK   -> POST /api/reserver (crée le RDV)
+     On réutilise showFeedback() pour les retours, on garde le honeypot _gotcha.
      --------------------------------------------------------------------- */
   var form = document.querySelector("[data-rdv-form]");
   if (form) {
-    // Le message de confirmation est un voisin du <form> (pas un enfant),
-    // on le cherche donc dans tout le document, pas seulement dans le form.
+    // Le message de confirmation est un voisin du <form> (pas un enfant).
     var feedback = document.querySelector("[data-form-feedback]");
+    // Texte de succès par défaut (placé dans le HTML) — mémorisé pour pouvoir
+    // le restaurer après l'affichage d'un message d'erreur personnalisé.
+    var defaultOkMsg = feedback ? feedback.querySelector("span").textContent : "";
+    var TEL = "01 69 05 15 03";
+
+    var prestationSel = form.querySelector('[name="prestation"]');
+    var dateInput = form.querySelector('[name="date"]');
+    var slotsWrap = form.querySelector("[data-slots]");
+    var creneauField = form.querySelector("[data-creneau-field]");
+    var creneauInput = form.querySelector("[data-creneau-value]");
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var submitHtml = submitBtn ? submitBtn.innerHTML : "";
+    var selectedSlot = null;   // "HH:MM" choisi par le client
+    var dispoToken = 0;        // anti course : ignore les réponses obsolètes
+
+    // Empêche le choix d'une date passée (min = aujourd'hui, fuseau Paris).
+    if (dateInput) {
+      dateInput.min = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Paris" });
+    }
 
     function setError(field, on) {
       var wrap = field.closest(".field");
@@ -222,10 +244,9 @@
       return valid;
     }
 
-    // Validation à la volée (après une première saisie).
-    // On ignore les champs cachés (_subject, honeypot _gotcha) qui ne sont
-    // pas dans un conteneur .field — sinon closest(".field") renvoie null.
-    form.querySelectorAll(".field input, .field select, .field textarea").forEach(function (field) {
+    // Validation à la volée (après une première saisie). On ignore le honeypot
+    // et l'input caché du créneau qui ne sont pas des champs visibles.
+    form.querySelectorAll(".field input:not([type=hidden]), .field select, .field textarea").forEach(function (field) {
       field.addEventListener("blur", function () { validateField(field); });
       field.addEventListener("input", function () {
         var wrap = field.closest(".field");
@@ -235,10 +256,152 @@
       });
     });
 
+    /* --- Gestion de la zone de créneaux ---------------------------------- */
+
+    function estDevis() {
+      return prestationSel && prestationSel.value === "evenementiel";
+    }
+
+    // Affiche un message d'état (astuce, chargement, info, erreur) à la place
+    // des créneaux. kind : "hint" | "loading" | "info" | "error".
+    function setSlotsMessage(text, kind) {
+      if (!slotsWrap) return;
+      slotsWrap.innerHTML = "";
+      var p = document.createElement("p");
+      p.className = "slots__hint" + (kind === "error" ? " is-error" : "");
+      if (kind === "loading") {
+        p.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> ';
+        p.appendChild(document.createTextNode(text));
+      } else {
+        p.textContent = text;
+      }
+      slotsWrap.appendChild(p);
+    }
+
+    function clearSelection() {
+      selectedSlot = null;
+      if (creneauInput) creneauInput.value = "";
+      if (creneauField) creneauField.classList.remove("has-error");
+    }
+
+    function selectSlot(heure, btn) {
+      selectedSlot = heure;
+      if (creneauInput) creneauInput.value = heure;
+      if (creneauField) creneauField.classList.remove("has-error");
+      slotsWrap.querySelectorAll(".slot").forEach(function (s) {
+        s.classList.remove("is-selected");
+        s.setAttribute("aria-pressed", "false");
+      });
+      btn.classList.add("is-selected");
+      btn.setAttribute("aria-pressed", "true");
+    }
+
+    // Construit les boutons-créneaux cliquables.
+    function renderSlots(liste) {
+      slotsWrap.innerHTML = "";
+      liste.forEach(function (heure) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "slot";
+        b.textContent = heure;
+        b.setAttribute("data-slot", heure);
+        b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () { selectSlot(heure, b); });
+        slotsWrap.appendChild(b);
+      });
+    }
+
+    // Active/désactive le bouton d'envoi (désactivé tant qu'on est sur devis).
+    function lockSubmit(forced) {
+      if (submitBtn) submitBtn.disabled = forced || estDevis();
+    }
+
+    // Recharge les créneaux dès que la prestation OU la date change.
+    function onCriteriaChange() {
+      clearSelection();
+
+      if (estDevis()) {
+        setSlotsMessage("Cette prestation se réserve sur devis — appelez le " + TEL + ".", "info");
+        lockSubmit(true);
+        return;
+      }
+      lockSubmit(false);
+
+      if (!prestationSel.value || !dateInput.value) {
+        setSlotsMessage("Choisissez une prestation et une date pour voir les créneaux.", "hint");
+        return;
+      }
+      fetchDispo(dateInput.value, prestationSel.value);
+    }
+
+    // Interroge l'API des disponibilités et affiche le résultat.
+    function fetchDispo(date, prestation) {
+      var token = ++dispoToken;
+      setSlotsMessage("Recherche des créneaux disponibles…", "loading");
+
+      fetch("/api/disponibilites?date=" + encodeURIComponent(date) +
+            "&prestation=" + encodeURIComponent(prestation),
+            { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          if (token !== dispoToken) return; // une requête plus récente a pris le relais
+          if (!res.ok) {
+            setSlotsMessage((res.data && res.data.erreur) || "Impossible de charger les créneaux.", "error");
+            return;
+          }
+          var d = res.data || {};
+          if (d.raison === "devis") {
+            setSlotsMessage("Cette prestation se réserve sur devis — appelez le " + TEL + ".", "info");
+            lockSubmit(true);
+            return;
+          }
+          if (d.raison === "ferme") {
+            setSlotsMessage("Le salon est fermé ce jour-là. Choisissez une autre date.", "info");
+            return;
+          }
+          if (d.raison === "passe") {
+            setSlotsMessage("Cette date est déjà passée, merci d'en choisir une autre.", "info");
+            return;
+          }
+          if (!d.creneaux || !d.creneaux.length) {
+            setSlotsMessage("Aucun créneau disponible ce jour. Essayez une autre date.", "info");
+            return;
+          }
+          renderSlots(d.creneaux);
+        })
+        .catch(function () {
+          if (token !== dispoToken) return;
+          setSlotsMessage("Impossible de charger les créneaux. Réessayez ou appelez le " + TEL + ".", "error");
+        });
+    }
+
+    if (prestationSel) prestationSel.addEventListener("change", onCriteriaChange);
+    if (dateInput) {
+      dateInput.addEventListener("change", onCriteriaChange);
+      dateInput.addEventListener("input", onCriteriaChange);
+    }
+
+    /* --- Soumission : création du rendez-vous ---------------------------- */
+
+    function setSending(on) {
+      if (!submitBtn) return;
+      submitBtn.disabled = on || estDevis();
+      submitBtn.innerHTML = on
+        ? '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Réservation en cours…'
+        : submitHtml;
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      var fields = form.querySelectorAll(".field input, .field select, .field textarea");
+      // Prestation sur devis : aucune réservation en ligne.
+      if (estDevis()) {
+        showFeedback("error", "Cette prestation se réserve sur devis — appelez le " + TEL + ".");
+        return;
+      }
+
+      // Valide les champs visibles (prénom, nom, email, tél, prestation, date).
+      var fields = form.querySelectorAll(".field input:not([type=hidden]), .field select, .field textarea");
       var allValid = true;
       var firstInvalid = null;
       fields.forEach(function (field) {
@@ -248,58 +411,57 @@
         }
       });
 
+      // Valide qu'un créneau a bien été choisi.
+      if (!selectedSlot) {
+        if (creneauField) creneauField.classList.add("has-error");
+        allValid = false;
+        if (!firstInvalid && slotsWrap) {
+          slotsWrap.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+        }
+      }
+
       if (!allValid) {
         if (firstInvalid) firstInvalid.focus();
         return;
       }
 
-      /* =================================================================
-         ENVOI RÉEL VIA FORMSPREE (AJAX — la page ne se recharge pas)
-         -----------------------------------------------------------------
-         L'URL de destination vient de l'attribut action="" de la balise
-         <form> (votre endpoint Formspree, modifiable dans contact.html).
-         Pour changer de service plus tard (ex. EmailJS), c'est ici que
-         l'on adapte l'envoi.
-         ================================================================= */
-      var submitBtn = form.querySelector('button[type="submit"]');
-      var submitHtml = submitBtn ? submitBtn.innerHTML : "";
-
-      function setSending(on) {
-        if (!submitBtn) return;
-        submitBtn.disabled = on;
-        submitBtn.innerHTML = on
-          ? '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Envoi en cours…'
-          : submitHtml;
-      }
-
-      // Sécurité : si pour une raison l'action n'est pas définie, on n'envoie pas dans le vide.
-      if (!form.action) {
-        showFeedback("error", "Configuration manquante. Merci de nous appeler au 01 69 05 15 03.");
-        return;
-      }
+      var payload = {
+        date: dateInput.value,
+        heure: selectedSlot,
+        prestation: prestationSel.value,
+        prenom: form.prenom ? form.prenom.value.trim() : "",
+        nom: form.nom ? form.nom.value.trim() : "",
+        email: form.email ? form.email.value.trim() : "",
+        telephone: form.telephone ? form.telephone.value.trim() : "",
+        message: form.message ? form.message.value.trim() : "",
+        _gotcha: form._gotcha ? form._gotcha.value : ""
+      };
 
       setSending(true);
-      fetch(form.action, {
+      fetch("/api/reserver", {
         method: "POST",
-        body: new FormData(form),
-        headers: { Accept: "application/json" }
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload)
       })
-        .then(function (response) {
-          if (response.ok) {
+        .then(function (r) { return r.json().then(function (d) { return { status: r.status, ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          if (res.ok && res.data && res.data.ok) {
             showFeedback("ok");
             form.reset();
+            clearSelection();
+            setSlotsMessage("Choisissez une prestation et une date pour voir les créneaux.", "hint");
+          } else if (res.status === 409) {
+            // Créneau pris entre-temps : on prévient et on recharge les dispos.
+            showFeedback("error", (res.data && res.data.erreur) ||
+              "Ce créneau vient d'être réservé. Merci d'en choisir un autre.");
+            onCriteriaChange();
           } else {
-            // Formspree renvoie un détail d'erreur en JSON
-            return response.json().then(function (data) {
-              var msg = (data && data.errors && data.errors.length)
-                ? data.errors.map(function (e) { return e.message; }).join(" ")
-                : "Une erreur est survenue. Merci de réessayer ou de nous appeler.";
-              showFeedback("error", msg);
-            });
+            showFeedback("error", (res.data && res.data.erreur) ||
+              "Une erreur est survenue. Réessayez ou appelez le " + TEL + ".");
           }
         })
         .catch(function () {
-          showFeedback("error", "Connexion impossible. Merci de réessayer ou d'appeler le 01 69 05 15 03.");
+          showFeedback("error", "Connexion impossible. Réessayez ou appelez le " + TEL + ".");
         })
         .finally(function () {
           setSending(false);
@@ -323,9 +485,12 @@
           ? "fa-solid fa-circle-exclamation"
           : "fa-solid fa-circle-check";
       }
-      if (text && (customMsg || isError)) {
-        text.textContent = customMsg ||
-          "Une erreur est survenue. Merci de réessayer ou de nous appeler.";
+      // On rétablit toujours le bon texte (évite qu'un ancien message d'erreur
+      // reste affiché lors d'un succès ultérieur).
+      if (text) {
+        text.textContent = customMsg || (isError
+          ? "Une erreur est survenue. Réessayez ou appelez le " + TEL + "."
+          : defaultOkMsg);
       }
 
       feedback.classList.add("is-visible");

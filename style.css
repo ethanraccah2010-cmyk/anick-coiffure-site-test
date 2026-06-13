@@ -780,6 +780,56 @@ p { color: var(--c-text-soft); }
 }
 .form-feedback.is-error i { color: #b65a4b; }
 
+/* --- Créneaux dynamiques (réservation) --- */
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 42px;
+  align-items: center;
+}
+.slots__hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--c-text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.slots__hint.is-error { color: #b65a4b; }
+.slots__hint i { color: var(--c-gold); }
+.slots__hint.is-error i { color: #b65a4b; }
+
+.slot {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--c-white);
+  border: 1.5px solid var(--c-line);
+  color: var(--c-text-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.slot:hover { border-color: var(--c-gold); color: var(--c-gold); }
+.slot.is-selected {
+  background: var(--c-gold);
+  border-color: var(--c-gold);
+  color: var(--c-white);
+}
+.slot:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(192, 137, 79, 0.18);
+}
+
+/* Bouton d'envoi neutralisé (prestation sur devis) */
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* =========================================================================
    11. LIGHTBOX GALERIE
    ========================================================================= */
@@ -1012,6 +1062,16 @@ p { color: var(--c-text-soft); }
   font-size: 1.25rem;
   color: var(--c-gold);
   white-space: nowrap;
+}
+/* Durée indicative affichée sous le nom/description (≈ varie selon la tête) */
+.menu-item__duration {
+  grid-column: 1;
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: var(--c-text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .menu-nav {

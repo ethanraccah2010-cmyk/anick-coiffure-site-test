@@ -85,26 +85,63 @@ aussi être mises à jour si l'adresse change.
 
 ---
 
-## 📨 Brancher le formulaire de rendez-vous
+## 📅 Réservation connectée à Google Agenda
 
-Par défaut, le formulaire (page **contact.html**) **simule** l'envoi : il affiche
-un message de confirmation mais **n'envoie rien**. Pour recevoir réellement les
-demandes, deux options sans serveur (le `TODO` complet est commenté dans
-**`script.js`**) :
+Le formulaire (page **contact.html**) crée **automatiquement** un événement dans
+l'agenda Google du salon. Il affiche d'abord les créneaux réellement libres
+(selon la durée de la prestation et les rendez-vous déjà pris), puis bloque le
+créneau choisi. Architecture :
 
-### Option A — Formspree (le plus simple)
-1. Créez un compte sur [formspree.io](https://formspree.io) et un formulaire.
-2. Dans `contact.html`, sur la balise `<form data-rdv-form ...>`, ajoutez :
-   ```html
-   action="https://formspree.io/f/VOTRE_ID" method="POST"
-   ```
-3. Dans `script.js`, remplacez le bloc *« Confirmation SIMULÉE »* par le `fetch()`
-   indiqué dans le commentaire `TODO`.
+- **`/lib/config.js`** — source unique : table des prestations + **durées (min)**,
+  horaires d'ouverture, fuseau `Europe/Paris`. ⚠ **À confirmer avec Anick** : une
+  durée fausse peut provoquer une double-réservation.
+- **`/lib/temps.js`** — conversions de fuseau (heure d'été/hiver gérée).
+- **`/lib/creneaux.js`** — calcul des créneaux libres (logique pure).
+- **`/lib/google.js`** — authentification OAuth + lecture/écriture de l'agenda.
+- **`/api/disponibilites.js`** — `GET ?date=YYYY-MM-DD&prestation=CLE` → créneaux libres.
+- **`/api/reserver.js`** — `POST` JSON → recalcule la durée côté serveur, revérifie
+  la disponibilité, crée l'événement.
 
-### Option B — EmailJS
-Suivez les instructions du `TODO` dans `script.js` (script CDN + `emailjs.sendForm`).
+### 1. Identifiants Google (OAuth — pas de compte de service)
+1. [console.cloud.google.com](https://console.cloud.google.com) → créez/choisissez un projet.
+2. **APIs & Services → Library** → activez **Google Calendar API**.
+3. **OAuth consent screen** → type *External*, renseignez les champs obligatoires,
+   ajoutez votre adresse Google en **Test user**.
+4. **Credentials → Create credentials → OAuth client ID** → type **Web application**.
+   Dans *Authorized redirect URIs*, ajoutez `https://developers.google.com/oauthplayground`.
+5. Notez le **Client ID** et le **Client secret**.
 
-> Pensez à ajouter une protection anti-spam (honeypot ou reCAPTCHA).
+### 2. Refresh token via OAuth Playground
+1. Ouvrez [developers.google.com/oauthplayground](https://developers.google.com/oauthplayground).
+2. Roue crantée (⚙, en haut à droite) → cochez **Use your own OAuth credentials**
+   → collez Client ID + Client secret.
+3. Étape 1 (scopes) : saisissez `https://www.googleapis.com/auth/calendar` →
+   **Authorize APIs** → connectez-vous avec le compte de l'agenda du salon.
+4. Étape 2 → **Exchange authorization code for tokens** → copiez le **Refresh token**.
+
+### 3. Variables d'environnement sur Vercel
+Dans **Project → Settings → Environment Variables**, ajoutez ces 4 variables pour
+**Production ET Preview**, puis **Redeploy** :
+
+| Variable                | Valeur                                             |
+|-------------------------|----------------------------------------------------|
+| `GOOGLE_CLIENT_ID`      | Client ID de l'étape 1                             |
+| `GOOGLE_CLIENT_SECRET`  | Client secret de l'étape 1                         |
+| `GOOGLE_REFRESH_TOKEN`  | Refresh token de l'étape 2                         |
+| `GOOGLE_CALENDAR_ID`    | `primary` (ou l'ID d'un agenda dédié)             |
+
+> Réglages projet : **Root Directory = racine**, **Framework Preset = Other**.
+> Vercel installe `googleapis` (voir `package.json`) et détecte le dossier `/api`
+> automatiquement. Le fichier `.env` local n'est **jamais** commité (`.gitignore`).
+
+### 4. Tester
+- API directe : `https://VOTRE-SITE/api/disponibilites?date=2026-06-20&prestation=coupe_femme`
+  → doit renvoyer `{ "creneaux": ["09:00", …] }`.
+- Formulaire : page **contact**, choisissez une prestation + une date, cliquez un
+  créneau, validez → un événement apparaît dans l'agenda du salon.
+
+> Anti-spam : honeypot `_gotcha` déjà en place. La prestation *« événementielle »*
+> est **sur devis** : pas de réservation en ligne (renvoi vers le téléphone).
 
 ---
 
