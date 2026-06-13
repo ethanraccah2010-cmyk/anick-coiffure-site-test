@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ============ SEO (unique à cette page) ============ -->
+  <title>Galerie — réalisations d'Anick Coiffure, coiffure afro Montgeron</title>
+  <meta name="description" content="Découvrez les réalisations d'Anick Coiffure à Montgeron : coupes, couleurs, tresses et coiffages sur cheveux afro, bouclés et toutes textures en Essonne." />
+  <meta name="theme-color" content="#FBF7F2" />
+  <link rel="canonical" href="https://anickcoiffure.fr/galerie" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:title" content="Galerie des réalisations — Anick Coiffure Montgeron" />
+  <meta property="og:description" content="Coupes, couleurs, tresses et coiffages réalisés au salon Anick Coiffure (91)." />
+  <meta property="og:url" content="https://anickcoiffure.fr/galerie" />
+  <meta property="og:image" content="https://anickcoiffure.fr/images/og.jpg" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💇🏾‍♀️</text></svg>" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Aller au contenu principal</a>
+
+  <!-- ====================== NAVIGATION ====================== -->
+  <header class="nav" data-nav>
+    <div class="container nav__inner">
+      <a class="brand" href="index.html" aria-label="Anick Coiffure — accueil">
+        <span class="brand__mark" aria-hidden="true">A</span>
+        <span class="brand__name">
+          <strong>Anick Coiffure</strong>
+          <span>Montgeron · Toutes textures</span>
+        </span>
+      </a>
+      <nav class="nav__links" aria-label="Navigation principale">
+        <a href="index.html">Accueil</a>
+        <a href="prestations.html">Prestations</a>
+        <a href="galerie.html" aria-current="page">Galerie</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a class="btn btn--gold nav__cta" href="contact.html#rdv">
+        <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Prendre RDV
+      </a>
+      <button class="nav__toggle" data-nav-toggle aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav__mobile" id="mobile-menu">
+      <a href="index.html">Accueil</a>
+      <a href="prestations.html">Prestations</a>
+      <a href="galerie.html">Galerie</a>
+      <a href="contact.html">Contact</a>
+      <a class="btn btn--gold" href="contact.html#rdv">
+        <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Prendre RDV
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ====================== EN-TÊTE DE PAGE ====================== -->
+    <section class="page-hero">
+      <div class="container">
+        <span class="eyebrow">Nos réalisations</span>
+        <h1>La <span class="serif-accent">galerie</span></h1>
+        <p>Quelques moments du salon et de nos réalisations. Cliquez sur une photo
+          pour l'agrandir.</p>
+        <nav class="breadcrumb" aria-label="Fil d'ariane">
+          <a href="index.html">Accueil</a> · Galerie
+        </nav>
+      </div>
+    </section>
+
+    <section class="section section--cream" style="padding-top:0;">
+      <div class="container">
+
+        <!--
+          ★★★ COMMENT AJOUTER / CHANGER LES PHOTOS ★★★
+          - Déposez vos images dans le dossier /images.
+          - Chaque vignette est un <div class="g-cell" data-lb-item> contenant une <img>.
+          - L'attribut data-fallback affiche un placeholder élégant si l'image manque.
+          - Dupliquez un bloc .g-cell pour ajouter une photo ; modifiez src et alt.
+        -->
+        <div class="gallery reveal" data-gallery>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/real-1.jpg" data-fallback alt="Coiffure texturée réalisée au salon Anick Coiffure" />
+          </div>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/real-2.jpg" data-fallback alt="Tresses réalisées au salon Anick Coiffure" />
+          </div>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/real-3.jpg" data-fallback alt="Coloration lumineuse — Anick Coiffure Montgeron" />
+          </div>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/real-4.jpg" data-fallback alt="Coupe bouclée définie — Anick Coiffure" />
+          </div>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/real-5.jpg" data-fallback alt="Coiffage soigné — Anick Coiffure Montgeron" />
+          </div>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/salon-1.jpg" data-fallback alt="Anick coiffant une cliente au salon" />
+          </div>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/salon-2.jpg" data-fallback alt="Ambiance du salon Anick Coiffure" />
+          </div>
+          <div class="g-cell" data-lb-item tabindex="0" role="button" aria-label="Agrandir la photo">
+            <img src="images/hero.jpg" data-fallback alt="Espace coiffure du salon Anick Coiffure" />
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="section-head center reveal" style="margin-top:56px;margin-bottom:0;">
+          <h2>Envie d'un nouveau look&nbsp;?</h2>
+          <p>Réservez votre rendez-vous et laissez Anick sublimer vos cheveux.</p>
+          <a class="btn btn--gold" href="contact.html#rdv">
+            <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Prendre rendez-vous
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ====================== LIGHTBOX ====================== -->
+  <div class="lightbox" data-lightbox aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photo agrandie">
+    <button class="lightbox__btn lightbox__close" aria-label="Fermer">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+    <button class="lightbox__btn lightbox__prev" aria-label="Photo précédente">
+      <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+    </button>
+    <div class="lightbox__img-wrap"></div>
+    <button class="lightbox__btn lightbox__next" aria-label="Photo suivante">
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- ====================== FOOTER ====================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__about">
+          <a class="brand" href="index.html" aria-label="Anick Coiffure — accueil">
+            <span class="brand__mark" aria-hidden="true">A</span>
+            <span class="brand__name">
+              <strong>Anick Coiffure</strong>
+              <span>Montgeron · Toutes textures</span>
+            </span>
+          </a>
+          <p>Salon de coiffure expert toutes textures à Montgeron. Cheveux afro,
+            bouclés, texturés, défrisés et lisses — avec savoir-faire et bienveillance.</p>
+          <div class="footer__social">
+            <a href="https://www.facebook.com/anickcoiffure/" target="_blank" rel="noopener" aria-label="Facebook Anick Coiffure">
+              <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
+            </a>
+            <a href="tel:+33169051503" aria-label="Appeler le salon">
+              <i class="fa-solid fa-phone" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="prestations.html">Prestations</a></li>
+            <li><a href="galerie.html">Galerie</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Horaires</h4>
+          <ul class="footer__hours">
+            <li><span>Lundi</span><span class="closed">Fermé</span></li>
+            <li><span>Mar–Ven</span><span>9h–19h</span></li>
+            <li><span>Samedi</span><span>9h–18h</span></li>
+            <li><span>Dimanche</span><span class="closed">Fermé</span></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Coordonnées</h4>
+          <ul class="footer__contact">
+            <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+              <span>31 Avenue de la République<br />91230 Montgeron</span></li>
+            <li><i class="fa-solid fa-phone" aria-hidden="true"></i>
+              <a href="tel:+33169051503">01 69 05 15 03</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© <span data-year>2026</span> Anick Coiffure · Tous droits réservés</span>
+        <span>31 Avenue de la République, 91230 Montgeron</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
