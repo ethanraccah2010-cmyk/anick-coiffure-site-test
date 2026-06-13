@@ -110,7 +110,11 @@ module.exports = async function handler(req, res) {
     }
     await creerEvenement({
       dateISO, heure, dureeMin: prestation.duree,
-      prestation, prenom, nom, email, telephone, message,
+      prestation, cle,
+      prenom, nom, email, telephone,
+      adresse: '',          // le formulaire client ne demande pas d'adresse
+      note: message,        // le « message » client devient la note du RDV
+      source: 'client',
     });
     return res.status(200).json({ ok: true });
   } catch (err) {

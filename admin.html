@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Page privée : on demande aux moteurs de ne pas l'indexer. -->
+  <title>Mes rendez-vous — Anick Coiffure</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#FBF7F2" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💇🏾‍♀️</text></svg>" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="admin-body">
+
+  <!-- ====================== ÉCRAN CODE D'ACCÈS ======================
+       Affiché seulement si une fonction renvoie 401 (DASHBOARD_PASSWORD
+       rempli côté Vercel). En mode test (variable vide), reste masqué. -->
+  <div class="admin-gate" data-gate hidden>
+    <form class="admin-gate__card" data-gate-form>
+      <span class="admin-gate__mark" aria-hidden="true">A</span>
+      <h1>Espace salon</h1>
+      <p>Entrez le code d'accès pour voir vos rendez-vous.</p>
+      <div class="field">
+        <label for="gate-pwd">Code d'accès</label>
+        <input type="password" id="gate-pwd" autocomplete="current-password" placeholder="••••••" />
+        <span class="admin-gate__error" data-gate-error hidden>Code incorrect, réessayez.</span>
+      </div>
+      <button type="submit" class="btn btn--gold" style="width:100%;">
+        <i class="fa-solid fa-unlock" aria-hidden="true"></i> Entrer
+      </button>
+    </form>
+  </div>
+
+  <!-- ====================== APPLICATION ======================
+       Visible par défaut (mode test sans code). Si une fonction renvoie 401,
+       admin.js masque l'app et affiche l'écran « code d'accès ». -->
+  <main class="admin" data-app>
+
+    <!-- ================= VUE LISTE (agenda) ================= -->
+    <section class="admin-view" data-view="liste">
+      <header class="admin-header">
+        <div class="admin-header__title">
+          <span class="admin-header__icon" aria-hidden="true">
+            <i class="fa-solid fa-calendar-days"></i>
+          </span>
+          <div>
+            <h1>Mes rendez-vous</h1>
+            <p data-week-label>Semaine en cours</p>
+          </div>
+        </div>
+        <button class="btn btn--gold admin-add-btn" data-open-add>
+          <i class="fa-solid fa-plus" aria-hidden="true"></i> Ajouter
+        </button>
+      </header>
+
+      <!-- Bande de 3 cartes résumé -->
+      <div class="admin-summary">
+        <div class="summary-card">
+          <span class="summary-card__label">Aujourd'hui</span>
+          <span class="summary-card__value" data-sum-count>—</span>
+          <span class="summary-card__unit">rendez-vous</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-card__label">Temps occupé</span>
+          <span class="summary-card__value" data-sum-time>—</span>
+          <span class="summary-card__unit">aujourd'hui</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-card__label">Prochain créneau</span>
+          <span class="summary-card__value" data-sum-next>—</span>
+          <span class="summary-card__unit" data-sum-next-day>&nbsp;</span>
+        </div>
+      </div>
+
+      <!-- Sélecteur de vue Jour / Semaine -->
+      <div class="view-toggle" role="tablist" aria-label="Période affichée">
+        <button class="view-toggle__btn is-active" data-period="jour" role="tab">Jour</button>
+        <button class="view-toggle__btn" data-period="semaine" role="tab">Semaine</button>
+      </div>
+
+      <!-- Bandeau de message (succès / erreur), masqué par défaut -->
+      <div class="admin-flash" data-flash hidden aria-live="polite"></div>
+
+      <!-- Liste des RDV (remplie par admin.js) -->
+      <div class="admin-list" data-list>
+        <p class="admin-empty" data-loading>
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Chargement…
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= VUE DÉTAIL ================= -->
+    <section class="admin-view" data-view="detail" hidden>
+      <button class="admin-back" data-back-detail>
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour
+      </button>
+
+      <div class="detail-card" data-detail>
+        <!-- Rempli par admin.js -->
+      </div>
+    </section>
+
+    <!-- ================= VUE AJOUT MANUEL ================= -->
+    <section class="admin-view" data-view="ajout" hidden>
+      <button class="admin-back" data-back-add>
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour
+      </button>
+
+      <div class="form-card admin-form-card">
+        <h2 class="admin-form-title">Nouveau rendez-vous</h2>
+        <p class="admin-form-sub">Pour une cliente au téléphone — vous êtes libre de l'heure.</p>
+
+        <div class="admin-flash" data-add-flash hidden aria-live="polite"></div>
+
+        <form data-add-form novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="a-prenom">Prénom <span class="req">*</span></label>
+              <input type="text" id="a-prenom" name="prenom" autocomplete="off" required placeholder="Prénom" />
+            </div>
+            <div class="field">
+              <label for="a-nom">Nom <span class="req">*</span></label>
+              <input type="text" id="a-nom" name="nom" autocomplete="off" required placeholder="Nom" />
+            </div>
+            <div class="field">
+              <label for="a-tel">Téléphone <span class="req">*</span></label>
+              <input type="tel" id="a-tel" name="telephone" required
+                     pattern="[0-9 +\(\)\.\-]{6,}" placeholder="06 12 34 56 78" />
+            </div>
+            <div class="field">
+              <label for="a-email">Email (facultatif)</label>
+              <input type="email" id="a-email" name="email" placeholder="cliente@exemple.fr" />
+            </div>
+            <div class="field span-2">
+              <label for="a-adresse">Adresse (facultatif)</label>
+              <input type="text" id="a-adresse" name="adresse" placeholder="Adresse de la cliente" />
+            </div>
+            <div class="field span-2">
+              <label for="a-prestation">Prestation <span class="req">*</span></label>
+              <select id="a-prestation" name="prestation" required>
+                <option value="" disabled selected>Choisissez une prestation…</option>
+                <!-- optgroups remplis par admin.js depuis la table des prestations -->
+              </select>
+            </div>
+            <!-- Durée explicite : visible seulement si prestation « sur devis » -->
+            <div class="field span-2" data-duree-wrap hidden>
+              <label for="a-duree">Durée estimée (minutes) <span class="req">*</span></label>
+              <input type="number" id="a-duree" name="dureeMin" min="15" step="15" placeholder="ex. 120" />
+            </div>
+            <div class="field">
+              <label for="a-date">Date <span class="req">*</span></label>
+              <input type="date" id="a-date" name="dateISO" required />
+            </div>
+            <div class="field">
+              <label for="a-heure">Heure <span class="req">*</span></label>
+              <input type="time" id="a-heure" name="heure" required />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn--gold" style="width:100%;margin-top:22px;">
+            <i class="fa-solid fa-check" aria-hidden="true"></i> Enregistrer le rendez-vous
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
