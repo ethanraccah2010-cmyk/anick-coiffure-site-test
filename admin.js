@@ -121,6 +121,10 @@
   function apiFetch(url, options) {
     options = options || {};
     options.headers = options.headers || {};
+    // Toujours forcer le réseau : sinon le navigateur peut resservir un vieux
+    // 401 mis en cache (ex. après suppression du mot de passe) et réafficher
+    // l'écran de code à tort.
+    options.cache = "no-store";
     if (motDePasse) options.headers["x-dashboard-password"] = motDePasse;
     return fetch(url, options).then(function (res) {
       if (res.status === 401) {

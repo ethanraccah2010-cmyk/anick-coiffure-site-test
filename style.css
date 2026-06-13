@@ -1499,6 +1499,14 @@ p { color: var(--c-text-soft); }
 .admin-form-sub { font-size: 0.9rem; color: var(--c-text-soft); margin-bottom: 22px; }
 
 /* --- Écran code d'accès --- */
+/* CORRECTIF IMPORTANT : l'attribut HTML `hidden` doit toujours l'emporter sur
+   les `display:grid/flex` posés par les classes (.admin-gate, .admin-view,
+   .field…). Sans cette règle, un élément masqué via JS (gate, fiche détail,
+   champ durée…) resterait visible car `.classe{display:…}` a la même
+   spécificité que `[hidden]{display:none}` et gagne par ordre de cascade.
+   Portée limitée à la page admin via .admin-body. */
+.admin-body [hidden] { display: none !important; }
+
 .admin-gate {
   position: fixed;
   inset: 0;
